@@ -2,9 +2,11 @@ import express from "express";
 import http from "http";
 import router from "./routes";
 import io from "./socket-connection";
+import cors from "cors";
 
 const PORT = 4000;
 const app = express();
+app.use(cors());
 
 export const server = http.createServer(app);
 app.use(express.json());

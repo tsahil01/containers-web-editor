@@ -22,6 +22,9 @@ router.post("/new-container", async (req, res) => {
       name: name,
       Cmd: cmd.split(" "),
       Tty: true,
+      AttachStdin: true,
+      AttachStdout: true,
+      AttachStderr: true,
     });
 
     await container.start();
@@ -30,6 +33,21 @@ router.post("/new-container", async (req, res) => {
       msg: "Container created successfully",
       containerId: container.id,
     });
+  } catch (error) {
+    res.status(400).json({ error: error });
+  }
+});
+
+router.delete("/containers", async (req, res) => {
+  console.log("Stopping and removing all containers");
+  try {
+    const containers = await docker.listContainers();
+    for (const containerInfo of containers) {
+      const container = docker.getContainer(containerInfo.Id);
+      await container.stop();
+      await container.remove();
+    }
+    res.json({ msg: "All containers stopped and removed" });
   } catch (error) {
     res.status(400).json({ error: error });
   }

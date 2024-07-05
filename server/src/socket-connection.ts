@@ -8,65 +8,69 @@ const io = new Server(server, {
   },
 });
 
-io.on("connection", async (socket) => {
+io.on("connection", (socket) => {
   console.log("a user connected: ", socket.id);
-  // get container id from client
-  let container: any;
-  try {
-    socket.on("containerId", (containerId) => {
+
+  socket.on("containerId", async (containerId) => {
+    console.log("Container ID received: ", containerId);
+    let container: any;
+    try {
       container = docker.getContainer(containerId);
-    });
 
-    // Execute a shell in the container
-    const exec = await container.exec({
-      Cmd: ["/bin/bash"],
-      AttachStdin: true,
-      AttachStdout: true,
-      AttachStderr: true,
-      Tty: true,
-    });
-
-    const stream: any = await new Promise((resolve, reject) => {
-      exec.start({ hijack: true, stdin: true }, (err: any, stream: any) => {
-        if (err) return reject(err);
-        resolve(stream);
+      // Execute a shell in the container
+      const exec: any = await container.exec({
+        Cmd: ["/bin/bash"],
+        AttachStdin: true,
+        AttachStdout: true,
+        AttachStderr: true,
+        Tty: true,
       });
-    });
 
-    socket.on("message", (msg) => {
-      stream.write(msg);
-    });
+      const stream: any = await new Promise((resolve, reject) => {
+        exec.start({ hijack: true, stdin: true }, (err: any, stream: any) => {
+          if (err) return reject(err);
+          resolve(stream);
+        });
+      });
 
-    stream.on("data", (chunk: any) => {
-      socket.send(chunk.toString());
-    });
+      socket.on("input", (data) => {
+        console.log("input received: ", data);
+        stream.write(data);
+      });
 
-    stream.on("end", () => {
-      socket.disconnect();
-    });
-  } catch (error) {
-    console.log("Error:", error);
+      stream.on("data", (data: any) => {
+        console.log("output received: ", data.toString());
+        socket.emit("output", data.toString());
+      });
 
-    if (container) {
-      try {
-        await container.stop();
-        await container.remove();
-      } catch (cleanupErr) {
-        console.error("Error cleaning up container:", cleanupErr);
+      stream.on("end", () => {
+        socket.disconnect();
+      });
+    } catch (error) {
+      console.log("Error:", error);
+
+      if (container) {
+        try {
+          await container.stop();
+          await container.remove();
+        } catch (cleanupErr) {
+          console.error("Error cleaning up container:", cleanupErr);
+        }
       }
     }
-  }
 
-  socket.on("disconnect", async () => {
-    console.log("user disconnected: ", socket.id);
-    if (container) {
-      try {
-        await container.stop();
-        await container.remove();
-      } catch (error) {
-        console.error("Error cleaning up container:", error);
+    socket.on("disconnect", async () => {
+      console.log("user disconnected: ", socket.id);
+      if (container) {
+        try {
+          console.log("Stopping and removing container: ", containerId);
+          await container.stop();
+          await container.remove();
+        } catch (error) {
+          console.error("Error cleaning up container:", error);
+        }
       }
-    }
+    });
   });
 });
 
