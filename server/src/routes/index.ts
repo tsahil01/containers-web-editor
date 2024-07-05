@@ -22,6 +22,7 @@ router.post("/new-container", async (req, res) => {
     // Find an available port
     let availableHostPort = 8000;
     let availableInternalPort = 3000;
+    
     while (PORT_TO_CONTAINER[availableHostPort] && availableHostPort < 9000 && availableInternalPort < 9000) {
       availableHostPort++;
       availableInternalPort++;

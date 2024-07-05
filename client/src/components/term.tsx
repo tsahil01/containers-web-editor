@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { io, Socket } from "socket.io-client";
 import { Terminal as XTerminal } from "xterm";
+import { FitAddon } from 'xterm-addon-fit';
 import "xterm/css/xterm.css";
 
 export default function Terminal({
@@ -15,9 +16,19 @@ export default function Terminal({
       const term = new XTerminal({
         cursorBlink: true,
         fontSize: 16,
-        fontFamily: "Menlo, Monaco, 'Courier New', monospace",
+        fontWeightBold: "bold",
       });
+
+      const fitAddon = new FitAddon();
+      term.loadAddon(fitAddon);
       term.open(terminalRef.current);
+
+      const resizeTerminal = () => {
+        fitAddon.fit();
+      };
+
+      resizeTerminal();
+      window.addEventListener('resize', resizeTerminal);
 
       let newSocket = io("http://localhost:4000");
       newSocket.on("connect", () => {
@@ -29,13 +40,13 @@ export default function Terminal({
       });
 
       term.onData((data) => {
-        // console.log("input sent: ", data);
         newSocket.emit("input", data);
       });
 
       return () => {
         term.dispose();
         newSocket.disconnect();
+        window.removeEventListener('resize', resizeTerminal);
       };
     }
   }, [containerId]);
@@ -43,11 +54,11 @@ export default function Terminal({
   if (!containerId) return <div>Please provide a container ID.</div>;
 
   return (
-    <div className="m-10 border border-black p-10">
-      <h1 className="text-2xl font-bold">Terminal</h1>
-      <div className="border border-black p-2">
-        <div>Terminal for container: {containerId}</div>
-        <div ref={terminalRef} style={{ width: '100%', height: '100%' }} />
+    <div className="m-10 border border-black p-10 bg-gray-100 rounded-lg shadow-lg">
+      <h1 className="text-2xl font-bold mb-4 text-gray-800">Terminal</h1>
+      <div className="border border-black p-2 bg-white rounded-lg overflow-hidden">
+        <div className="mb-2 font-bold">Terminal for container: {containerId}</div>
+        <div ref={terminalRef} style={{color: "green"}} className="border border-gray-300 p-2 w-full h-96 bg-black text-green-500 text-bold rounded-md overflow-hidden" />
       </div>
     </div>
   );
