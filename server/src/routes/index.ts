@@ -3,9 +3,11 @@ import docker from "../docker";
 
 const router = express.Router();
 
-const PORT_TO_CONTAINER: any = {} // { "8000": "containerId" }
-const CONTAINER_TO_PORT: any = {} // { "containerId": "8000" }
-
+const PORT_TO_CONTAINER: Record<string, string> = {}; // { "8000": "containerId" }
+const CONTAINER_TO_PORT: Record<
+  string,
+  { internal: string; external: string }
+> = {}; // { "containerId": { internal: "8000", external: "8000" } }
 
 router.get("/", (req, res) => {
   res.json({
@@ -23,16 +25,33 @@ router.post("/new-container", async (req, res) => {
     await docker.pull(req.body.image);
     const { image, name, cmd } = req.body;
 
-    const availablePort = ( () => {
-      for(let i=8000; i<=9000; i++){
-          if (PORT_TO_CONTAINER[i]) {
-              continue;
-          }
-          return `${i}`;
+    // Find an available host port
+    const availableHostPort = (() => {
+      for (let i = 8001; i < 9000; i++) {
+        if (PORT_TO_CONTAINER[i]) {
+          continue;
+        }
+        return `${i}`;
       }
     })();
 
-    if (!availablePort) throw new Error("No Port Available");
+    if (!availableHostPort) throw new Error("No Host Port Available");
+
+    // Find an available internal port
+    const availableInternalPort = (() => {
+      for (let i = 3000; i < 5000; i++) {
+        if (
+          Object.values(CONTAINER_TO_PORT).some(
+            (ports) => ports.internal === `${i}`
+          )
+        ) {
+          continue;
+        }
+        return `${i}`;
+      }
+    })();
+
+    if (!availableInternalPort) throw new Error("No Internal Port Available");
 
     const container = await docker.createContainer({
       Image: image,
@@ -43,29 +62,36 @@ router.post("/new-container", async (req, res) => {
       AttachStdout: true,
       AttachStderr: true,
       ExposedPorts: {
-        "8000/tcp": {},
+        [`${availableInternalPort}/tcp`]: {},
       },
       HostConfig: {
         PortBindings: {
-          "8000/tcp": [
+          [`${availableInternalPort}/tcp`]: [
             {
-              HostPort: availablePort,
+              HostPort: availableHostPort,
             },
           ],
         },
-      }
+      },
     });
 
     await container.start();
 
+    // Update the maps with the new container and ports
+    PORT_TO_CONTAINER[availableHostPort] = container.id;
+    CONTAINER_TO_PORT[container.id] = {
+      internal: availableInternalPort,
+      external: availableHostPort,
+    };
+
     res.json({
       msg: "Container created successfully",
       containerId: container.id,
-      dockerPort: "8000/tcp",
-      exposedPort: availablePort,
+      internalPort: availableInternalPort,
+      externalPort: availableHostPort,
     });
-  } catch (error) {
-    res.status(400).json({ error: error });
+  } catch (error: any) {
+    res.status(400).json({ error: error.message });
     console.error("Error creating container:", error);
   }
 });
@@ -78,10 +104,19 @@ router.delete("/containers", async (req, res) => {
       const container = docker.getContainer(containerInfo.Id);
       await container.stop();
       await container.remove();
+
+      // Remove the container and ports from the maps
+      const ports = CONTAINER_TO_PORT[containerInfo.Id];
+      if (ports) {
+        delete PORT_TO_CONTAINER[ports.external];
+        delete CONTAINER_TO_PORT[containerInfo.Id];
+      }
     }
-    res.json({ msg: `All containers stopped and removed: ${containers.length}`,  });
-  } catch (error) {
-    res.status(400).json({ error: error });
+    res.json({
+      msg: `All containers stopped and removed: ${containers.length}`,
+    });
+  } catch (error: any) {
+    res.status(400).json({ error: error.message });
   }
 });
 
