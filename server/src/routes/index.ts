@@ -97,7 +97,7 @@ router.post("/new-container", async (req, res) => {
 });
 
 router.delete("/containers", async (req, res) => {
-  console.log("Stopping and removing all containers");
+  // console.log("Stopping and removing all containers");
   try {
     const containers = await docker.listContainers();
     for (const containerInfo of containers) {

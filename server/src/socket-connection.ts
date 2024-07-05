@@ -34,12 +34,12 @@ io.on("connection", (socket) => {
       });
 
       socket.on("input", (data) => {
-        console.log("input received: ", data);
+        // console.log("input received: ", data);
         stream.write(data);
       });
 
       stream.on("data", (data: any) => {
-        console.log("output received: ", data.toString());
+        // console.log("output received: ", data.toString());
         socket.emit("output", data.toString());
       });
 

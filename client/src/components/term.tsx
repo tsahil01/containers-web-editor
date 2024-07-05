@@ -12,7 +12,11 @@ export default function Terminal({
 
   useEffect(() => {
     if (containerId && terminalRef.current) {
-      const term = new XTerminal();
+      const term = new XTerminal({
+        cursorBlink: true,
+        fontSize: 16,
+        fontFamily: "Menlo, Monaco, 'Courier New', monospace",
+      });
       term.open(terminalRef.current);
 
       let newSocket = io("http://localhost:4000");
@@ -25,7 +29,7 @@ export default function Terminal({
       });
 
       term.onData((data) => {
-        console.log("input sent: ", data);
+        // console.log("input sent: ", data);
         newSocket.emit("input", data);
       });
 
@@ -43,7 +47,7 @@ export default function Terminal({
       <h1 className="text-2xl font-bold">Terminal</h1>
       <div className="border border-black p-2">
         <div>Terminal for container: {containerId}</div>
-        <div ref={terminalRef} style={{ width: '100%', height: '400px' }} />
+        <div ref={terminalRef} style={{ width: '100%', height: '100%' }} />
       </div>
     </div>
   );
