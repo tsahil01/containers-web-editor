@@ -34,7 +34,7 @@ export default function Page() {
 }
 
 async function fetchNewContainer() {
-  const image = "ubuntu";
+  const image = "node";
 
   const response = await fetch("http://localhost:4000/api/new-container", {
     method: "POST",
@@ -43,7 +43,7 @@ async function fetchNewContainer() {
     },
     body: JSON.stringify({
       image,
-      cmd: "/bin/bash",
+      cmd: "",
     }),
   });
   const data = await response.json();
