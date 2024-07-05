@@ -4,8 +4,6 @@ const docker = new Docker();
 
 export default docker;
 
-
-
 export const PORT_TO_CONTAINER: Record<string, string> = {}; // { "8000": "containerId" }
 export const CONTAINER_TO_PORT: Record<
   string,

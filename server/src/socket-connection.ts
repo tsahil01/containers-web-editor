@@ -67,17 +67,11 @@ io.on("connection", (socket) => {
           await container.stop();
           await container.remove();
 
-          // Remove the container and ports from the maps
-          const ports = PORT_TO_CONTAINER[containerId];
-          if (ports) {
-            delete PORT_TO_CONTAINER[ports];
-          }
+          // Remove the container from the maps
+          const { external } = CONTAINER_TO_PORT[containerId];
+          delete PORT_TO_CONTAINER[external];
+          delete CONTAINER_TO_PORT[containerId];
 
-          // Remove ports from the container
-          const containerPorts = CONTAINER_TO_PORT[containerId];
-          if (containerPorts) {
-            delete CONTAINER_TO_PORT[containerId];
-          }
 
         } catch (error) {
           console.error("Error cleaning up container:", error);

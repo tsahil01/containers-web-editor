@@ -3,7 +3,6 @@ import docker, { CONTAINER_TO_PORT, PORT_TO_CONTAINER } from "../docker";
 
 const router = express.Router();
 
-
 router.get("/", (req, res) => {
   res.json({
     msg: "Hello World from Docker World!!",
@@ -20,33 +19,17 @@ router.post("/new-container", async (req, res) => {
     await docker.pull(req.body.image);
     const { image, name, cmd } = req.body;
 
-    // Find an available host port
-    const availableHostPort = (() => {
-      for (let i = 8001; i < 8004; i++) {
-        if (PORT_TO_CONTAINER[i]) {
-          continue;
-        }
-        return `${i}`;
+    // Find an available port
+    let availableHostPort = 8000;
+    let availableInternalPort = 3000;
+    while (PORT_TO_CONTAINER[availableHostPort] && availableHostPort < 9000 && availableInternalPort < 9000) {
+      availableHostPort++;
+      availableInternalPort++;
+      if(availableHostPort > 8999 || availableInternalPort > 3999) {
+        throw new Error("No available ports");
+        return;
       }
-    })();
-
-    if (!availableHostPort) throw new Error("No Host Port Available");
-
-    // Find an available internal port
-    const availableInternalPort = (() => {
-      for (let i = 3000; i < 3004 ; i++) {
-        if (
-          Object.values(CONTAINER_TO_PORT).some(
-            (ports) => ports.internal === `${i}`
-          )
-        ) {
-          continue;
-        }
-        return `${i}`;
-      }
-    })();
-
-    if (!availableInternalPort) throw new Error("No Internal Port Available");
+    }
 
     const container = await docker.createContainer({
       Image: image,
@@ -63,7 +46,7 @@ router.post("/new-container", async (req, res) => {
         PortBindings: {
           [`${availableInternalPort}/tcp`]: [
             {
-              HostPort: availableHostPort,
+              HostPort: (availableHostPort).toString(),
             },
           ],
         },
@@ -72,11 +55,11 @@ router.post("/new-container", async (req, res) => {
 
     await container.start();
 
-    // Update the maps with the new container and ports
+    // Update the PORT_TO_CONTAINER and CONTAINER_TO_PORT maps
     PORT_TO_CONTAINER[availableHostPort] = container.id;
     CONTAINER_TO_PORT[container.id] = {
-      internal: availableInternalPort,
-      external: availableHostPort,
+      internal: availableInternalPort.toString(),
+      external: availableHostPort.toString(),
     };
 
     res.json({
@@ -99,21 +82,16 @@ router.delete("/containers", async (req, res) => {
       const container = docker.getContainer(containerInfo.Id);
       await container.stop();
       await container.remove();
-
-      // Remove the container and ports from the maps
-      const ports = CONTAINER_TO_PORT[containerInfo.Id];
-      if (ports) {
-        delete PORT_TO_CONTAINER[ports.external];
-        delete CONTAINER_TO_PORT[containerInfo.Id];
-      }
-
-      // Remove the port from the PORT_TO_CONTAINER map
-      for (const [port, containerId] of Object.entries(PORT_TO_CONTAINER)) {
-        if (containerId === containerInfo.Id) {
-          delete PORT_TO_CONTAINER[port];
-        }
-      }
     }
+
+    // Clear the maps
+    for (const port in PORT_TO_CONTAINER) {
+      delete PORT_TO_CONTAINER[port];
+    }
+    for (const containerId in CONTAINER_TO_PORT) {
+      delete CONTAINER_TO_PORT[containerId];
+    }
+    
     res.json({
       msg: `All containers stopped and removed: ${containers.length}`,
     });
