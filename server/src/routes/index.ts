@@ -1,13 +1,8 @@
 import express from "express";
-import docker from "../docker";
+import docker, { CONTAINER_TO_PORT, PORT_TO_CONTAINER } from "../docker";
 
 const router = express.Router();
 
-const PORT_TO_CONTAINER: Record<string, string> = {}; // { "8000": "containerId" }
-const CONTAINER_TO_PORT: Record<
-  string,
-  { internal: string; external: string }
-> = {}; // { "containerId": { internal: "8000", external: "8000" } }
 
 router.get("/", (req, res) => {
   res.json({
@@ -27,7 +22,7 @@ router.post("/new-container", async (req, res) => {
 
     // Find an available host port
     const availableHostPort = (() => {
-      for (let i = 8001; i < 9000; i++) {
+      for (let i = 8001; i < 8004; i++) {
         if (PORT_TO_CONTAINER[i]) {
           continue;
         }
@@ -39,7 +34,7 @@ router.post("/new-container", async (req, res) => {
 
     // Find an available internal port
     const availableInternalPort = (() => {
-      for (let i = 3000; i < 5000; i++) {
+      for (let i = 3000; i < 3004 ; i++) {
         if (
           Object.values(CONTAINER_TO_PORT).some(
             (ports) => ports.internal === `${i}`
@@ -110,6 +105,13 @@ router.delete("/containers", async (req, res) => {
       if (ports) {
         delete PORT_TO_CONTAINER[ports.external];
         delete CONTAINER_TO_PORT[containerInfo.Id];
+      }
+
+      // Remove the port from the PORT_TO_CONTAINER map
+      for (const [port, containerId] of Object.entries(PORT_TO_CONTAINER)) {
+        if (containerId === containerInfo.Id) {
+          delete PORT_TO_CONTAINER[port];
+        }
       }
     }
     res.json({

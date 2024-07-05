@@ -1,5 +1,5 @@
 import { Server } from "socket.io";
-import docker from "./docker";
+import docker, { CONTAINER_TO_PORT, PORT_TO_CONTAINER } from "./docker";
 import { server } from ".";
 
 const io = new Server(server, {
@@ -66,6 +66,19 @@ io.on("connection", (socket) => {
           console.log("Stopping and removing container: ", containerId);
           await container.stop();
           await container.remove();
+
+          // Remove the container and ports from the maps
+          const ports = PORT_TO_CONTAINER[containerId];
+          if (ports) {
+            delete PORT_TO_CONTAINER[ports];
+          }
+
+          // Remove ports from the container
+          const containerPorts = CONTAINER_TO_PORT[containerId];
+          if (containerPorts) {
+            delete CONTAINER_TO_PORT[containerId];
+          }
+
         } catch (error) {
           console.error("Error cleaning up container:", error);
         }
