@@ -36,9 +36,9 @@ io.on("connection", (socket) => {
         });
       });
 
-      socket.on('getFileTree', async (path = '/') => {
+      socket.on('getFileTree', async (path = '/home') => {
         try {
-          const files = await getFilesTree(containerId, path);
+          const files = await getFilesTree(container, path);
           socket.emit('fileTree', files);
         } catch (error) {
           console.error('Error getting file tree:', error);
@@ -78,7 +78,7 @@ io.on("connection", (socket) => {
           socket.emit('error', 'Failed to delete file');
         }
       });
-      
+
 
       socket.on("input", (data) => {
         // console.log("input received: ", data);
