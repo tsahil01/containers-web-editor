@@ -38,6 +38,7 @@ io.on("connection", (socket) => {
 
       socket.on('getFileTree', async (path = '/home') => {
         try {
+          console.log('Getting file tree for path:', path);
           const files = await getFilesTree(container, path);
           socket.emit('fileTree', files);
         } catch (error) {
