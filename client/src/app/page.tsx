@@ -1,17 +1,15 @@
 "use client";
-
+import { containerState } from "@/atom/container";
 import Terminal from "@/components/term";
-import { useState } from "react";
+import { Container, fetchNewContainer } from "@/lib/containerFetch";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import { RecoilRoot, useRecoilState, useSetRecoilState } from "recoil";
 
-interface Container {
-  containerId: string;
-  internalPort: number;
-  externalPort: number;
-}
 
 export default function Page() {
-  const [containerId, setContainerId] = useState<string | null>(null);
-  const [container, setContainer] = useState<Container | null>(null);
+  const setContainer = useSetRecoilState(containerState);
+  const router = useRouter();
 
   const startNewContainer = async () => {
     console.log("Starting New Container");
@@ -21,11 +19,14 @@ export default function Page() {
     console.log("Container:", containerData);
     
     const containerId = containerData.containerId;
-    setContainerId(containerId);
-    // console.log("Container ID:", containerId);
+
+    router.push(`/playground?containerId=${containerId}`);
   };
 
+  
+
   return (
+    <RecoilRoot>
     <div>
       <div className="p-9 mx-auto">
         <button
@@ -34,52 +35,9 @@ export default function Page() {
         >
           Start New Container
         </button>
-        <div>
-          {containerId && <div>Container ID: {containerId}</div>}
-          {container && (
-            <div>
-              Exposed Port: {container.internalPort} {"->"}{" "}
-              {container.externalPort}{" "}
-            </div>
-          )}
-        </div>
-      </div>
-      <div className="m-10 border border-black p-10">
-        <Terminal containerId={containerId} />
       </div>
     </div>
+    </RecoilRoot>
   );
 }
 
-async function fetchNewContainer(): Promise<Container> {
-  const image = "node";
-
-  try {
-
-    const response = await fetch("http://localhost:4000/api/new-container", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        image,
-        cmd: "",
-      }),
-    });
-    
-    if (!response.ok) {
-      throw new Error("Failed to fetch new container");
-    }
-    const data: Container = await response.json();
-  // console.log("Container Data:", data);
-  return data;
-
-  } catch (error) {
-    console.error("Error fetching new container:", error);
-    return {
-      containerId: "",
-      internalPort: 0,
-      externalPort: 0,
-    };
-  }
-}
