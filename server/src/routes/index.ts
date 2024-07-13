@@ -16,7 +16,7 @@ router.get("/containers", async (req, res) => {
 
 router.post("/new-container", async (req, res) => {
   try {
-    await docker.pull(req.body.image);
+    // await docker.pull(req.body.image);
     const { image, name, cmd } = req.body;
 
     // Find an available port
@@ -35,7 +35,7 @@ router.post("/new-container", async (req, res) => {
     const container = await docker.createContainer({
       Image: image,
       name: name,
-      Cmd: cmd.split(" "),
+      Cmd: ["code-server", "--bind-addr", `0.0.0.0:${availableInternalPort}`, "--auth", "none", "--disable-telemetry"],
       Tty: true,
       AttachStdin: true,
       AttachStdout: true,

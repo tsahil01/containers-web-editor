@@ -82,13 +82,12 @@ io.on("connection", (socket) => {
 
 
       socket.on("input", (data) => {
-        // console.log("input received: ", data);
         stream.write(data);
+        // console.log("input received from client: ", data);
       });
 
-      stream.on("data", (data: any) => {
-        // console.log("output received: ", data.toString());
-        socket.emit("output", data.toString());
+      stream.on("data", (data: string) => {
+        socket.emit("output", `${data}`);
       });
 
       stream.on("end", () => {
