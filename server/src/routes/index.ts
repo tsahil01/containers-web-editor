@@ -1,5 +1,5 @@
 import express from "express";
-import docker, { CONTAINER_TO_PORT, PORT_TO_CONTAINER } from "../docker";
+import docker, { CONTAINER_TO_PORT, PORT_TO_CONTAINER, cmdCommand } from "../docker";
 
 const router = express.Router();
 
@@ -35,7 +35,7 @@ router.post("/new-container", async (req, res) => {
     const container = await docker.createContainer({
       Image: image,
       name: name,
-      Cmd: ["code-server", "--bind-addr", `0.0.0.0:${availableInternalPort}`, "--auth", "none", "--disable-telemetry"],
+      Cmd: cmdCommand(image, availableInternalPort),
       Tty: true,
       AttachStdin: true,
       AttachStdout: true,
@@ -51,6 +51,7 @@ router.post("/new-container", async (req, res) => {
             },
           ],
         },
+        NetworkMode: "my_network",
       },
     });
 

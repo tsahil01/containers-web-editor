@@ -5,7 +5,7 @@ export interface Container {
   }
 
 export async function fetchNewContainer(): Promise<Container> {
-    const image = "ubuntu-vscode";
+    const image = "ubuntu-vscode-node";
   
     try {
   
