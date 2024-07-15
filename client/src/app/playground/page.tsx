@@ -44,6 +44,12 @@ export default function Page() {
         newSocket.emit("getFileTree", "/home");
       });
 
+      newSocket.on("disconnect", () => {
+        console.log("Disconnected from the server");
+        window.location.href = "/";
+
+      });
+
       newSocket.on("fileTree", (fileTreeData: any) => {
         console.log("Received file tree from server:", fileTreeData);
         setFileTree(fileTreeData);
