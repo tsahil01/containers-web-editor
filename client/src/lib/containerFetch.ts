@@ -1,39 +1,36 @@
 export interface Container {
-    containerId: string;
-    internalPort: number;
-    externalPort: number;
-  }
+  containerId: string;
+  internalPort: number;
+  externalPort: number;
+}
 
 export async function fetchNewContainer(): Promise<Container> {
-    const image = "ubuntu-vscode-node";
-  
-    try {
-  
-      const response = await fetch("http://localhost:4000/api/new-container", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          image,
-          cmd: "",
-        }),
-      });
-      
-      if (!response.ok) {
-        throw new Error("Failed to fetch new container");
-      }
-      const data: Container = await response.json();
+  const image = "ubuntu-vscode";
+
+  try {
+    const response = await fetch("http://localhost:4000/api/new-container", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        image,
+        cmd: "",
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch new container");
+    }
+    const data: Container = await response.json();
     // console.log("Container Data:", data);
     return data;
-  
-    } catch (error) {
-      console.error("Error fetching new container:", error);
-      return {
-        containerId: "",
-        internalPort: 0,
-        externalPort: 0,
-      };
-    }
+  } catch (error) {
+    console.error("Error fetching new container:", error);
+    return {
+      containerId: "",
+      internalPort: 0,
+      externalPort: 0,
+    };
   }
-  
+}
