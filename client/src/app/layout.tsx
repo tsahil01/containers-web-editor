@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Inter as FontSans } from "next/font/google";
 import { cn } from "@/lib/utils";
+import { RecoilRoot } from "recoil";
+import Provider from "./provider";
 
 const fontSans = FontSans({
   subsets: ["latin"],
@@ -26,7 +28,7 @@ export default function RootLayout({
           fontSans.variable
         )}
       >
-        {children}
+        <Provider>{children}</Provider>
       </body>
     </html>
   );

@@ -4,11 +4,11 @@ import { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 import { Terminal as XTerminal } from "xterm";
 import Terminal from "@/components/term";
-import { useRecoilValue } from "recoil";
-import { containerState } from "@/atom/container";
 import { Loading } from "../loader";
 import { Button } from "@/components/ui/button";
 import { CodeIcon, Globe, GlobeIcon, PowerIcon, Settings2Icon, TerminalIcon } from "lucide-react";
+import { useRecoilValue } from "recoil";
+import { containerState } from "@/atom/container";
 
 export default function Page() {
   const [socket, setSocket] = useState<any>(null);
@@ -16,10 +16,11 @@ export default function Page() {
   const terminalRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [fileTree, setFileTree] = useState<any>(null);
-  const container = useRecoilValue(containerState);
+  const container = useRecoilValue(containerState)
   const [term, setTerm] = useState<XTerminal | null>(null);
 
   useEffect(() => {
+    console.log("Containerrrrrrr:", container);
     const searchParams = new URLSearchParams(window.location.search);
     const containerId = searchParams.get("containerId");
     setContainerId(containerId);

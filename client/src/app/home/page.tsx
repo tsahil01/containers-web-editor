@@ -14,7 +14,7 @@ export default function Page() {
     console.log("Starting New Container");
 
     const containerData = await fetchNewContainer();
-    setContainer(containerData);
+    await setContainer(containerData);
     console.log("Container:", containerData);
 
     const containerId = containerData.containerId;
