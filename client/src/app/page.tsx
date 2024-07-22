@@ -45,7 +45,7 @@ export default function Page() {
               </div>
               <img
                 width={"600"}
-                src=""
+                src="placeholder.svg"
                 alt="Hero"
                 className="mx-auto aspect-video overflow-hidden rounded-xl object-cover sm:w-full lg:order-last lg:aspect-square"
               />
