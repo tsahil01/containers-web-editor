@@ -10,10 +10,11 @@ export default function Page() {
   const setContainer = useSetRecoilState(containerState);
   const router = useRouter();
 
-  const startNewContainer = async () => {
+  const startNewContainer = async ({imgName}: {imgName: string}) => {
     console.log("Starting New Container");
+    console.log("imgName:", imgName);
 
-    const containerData = await fetchNewContainer();
+    const containerData = await fetchNewContainer({imgName});
     await setContainer(containerData);
     console.log("Container:", containerData);
 
@@ -41,6 +42,7 @@ export default function Page() {
       <div className="w-full h-full p-10">
         <div className="grid grid-cols-5 gap-4">
           <LaunchCard
+            imgName="ubuntu-vscode"
             startNewContainer={startNewContainer}
             image="https://imageio.forbes.com/blogs-images/jasonevangelho/files/2018/07/ubuntu-logo.jpg?format=jpg&height=900&width=1600&fit=bounds"
             title="Ubuntu 24.0"

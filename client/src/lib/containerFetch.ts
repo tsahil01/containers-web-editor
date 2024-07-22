@@ -4,8 +4,8 @@ export interface Container {
   externalPort: number;
 }
 
-export async function fetchNewContainer(): Promise<Container> {
-  const image = "ubuntu-vscode";
+export async function fetchNewContainer({imgName}: {imgName: string}): Promise<Container> {
+  // const image = "ubuntu-vscode";
 
   try {
     const response = await fetch("http://localhost:4000/api/new-container", {
@@ -14,7 +14,7 @@ export async function fetchNewContainer(): Promise<Container> {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        image,
+        image: imgName,
         cmd: "",
       }),
     });

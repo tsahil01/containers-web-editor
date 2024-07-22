@@ -20,7 +20,7 @@ export default function Page() {
   const [term, setTerm] = useState<XTerminal | null>(null);
 
   useEffect(() => {
-    console.log("Containerrrrrrr:", container);
+    // console.log("Containerrrrrrr:", container);
     const searchParams = new URLSearchParams(window.location.search);
     const containerId = searchParams.get("containerId");
     setContainerId(containerId);
