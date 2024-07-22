@@ -1,10 +1,9 @@
 "use client"
 
 import { containerState } from "@/atom/container";
-import Terminal from "@/components/term";
 import { fetchNewContainer } from "@/lib/containerFetch";
 import { useRouter } from "next/navigation";
-import { RecoilRoot, useRecoilState, useSetRecoilState } from "recoil";
+import { useSetRecoilState } from "recoil";
 
 
 export default function Page() {
